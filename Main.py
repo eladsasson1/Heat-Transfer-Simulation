@@ -35,6 +35,12 @@ class HeatTransfer(QWidget):
         self.body1_temperature = 200.0
         self.body2_temperature = 0.0
 
+        # Simulation history lists and elapsed time
+        self.elapsed_time = 0.0
+        self.time_history = []
+        self.body1_temp_history = []
+        self.body2_temp_history = []
+
         # Simulation timer (100 ms interval corresponds to 0.1 s physical time step)
         self.timer_interval_ms = 100
         self.dt = 0.1
@@ -317,6 +323,15 @@ class HeatTransfer(QWidget):
             self.body1 = Body(mass1, specific_heat1, self.body1_temperature)
             self.body2 = Body(mass2, specific_heat2, self.body2_temperature)
 
+            # Reset history lists and record initial temperatures at time zero
+            self.elapsed_time = 0.0
+            self.time_history = []
+            self.body1_temp_history = []
+            self.body2_temp_history = []
+            self.time_history.append(self.elapsed_time)
+            self.body1_temp_history.append(self.body1.temperature)
+            self.body2_temp_history.append(self.body2.temperature)
+
             # Update button text, lock input controls, and start the simulation timer
             self.start_button.setText("Stop")
             self.set_inputs_enabled(False)
@@ -373,6 +388,12 @@ class HeatTransfer(QWidget):
         # Store exact floating-point temperatures for the next step
         self.body1_temperature = t1_new
         self.body2_temperature = t2_new
+
+        # Record elapsed time and floating-point temperatures in history lists
+        self.elapsed_time = round(self.elapsed_time + self.dt, 6)
+        self.time_history.append(self.elapsed_time)
+        self.body1_temp_history.append(t1_new)
+        self.body2_temp_history.append(t2_new)
 
         # Update numerical temperature displays with two decimal places
         self.body1_temp_label.setText(f"{t1_new:.2f} °C")

@@ -79,8 +79,7 @@ class AboutWindow(QWidget):
         main_layout.addWidget(divider)
 
         # Clickable GitHub repository link
-        # TODO: Replace the placeholder URL below with your actual GitHub repository URL
-        github_url = "https://github.com/YOUR_USERNAME/YOUR_REPOSITORY"
+        github_url = "https://github.com/eladsasson1/Heat-Transfer-Simulation.git"
         self.github_link_label = QLabel(
             f'GitHub Repository: <a href="{github_url}">{github_url}</a>'
         )

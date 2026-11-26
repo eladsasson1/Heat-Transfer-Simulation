@@ -66,6 +66,7 @@ class GraphWindow(QWidget):
         self.draw_button.clicked.connect(self.draw_graph)
 
         self.clear_button = QPushButton("Clear")
+        self.clear_button.clicked.connect(self.clear_graph)
         self.export_csv_button = QPushButton("Export to CSV")
 
         controls_layout.addWidget(selector_label)
@@ -132,6 +133,13 @@ class GraphWindow(QWidget):
             self.ax.set_xlim(0, 1)
         self.ax.set_ylim(-5, 205)
 
+        self.figure.tight_layout()
+        self.canvas.draw()
+
+    # Clear plotted curves and legend while keeping simulation history intact
+    def clear_graph(self):
+        self.ax.clear()
+        self.style_axes()
         self.figure.tight_layout()
         self.canvas.draw()
 

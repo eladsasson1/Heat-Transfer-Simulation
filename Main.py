@@ -374,6 +374,23 @@ class HeatTransfer(QWidget):
         self.body1_temperature = t1_new
         self.body2_temperature = t2_new
 
+        # Update numerical temperature displays with two decimal places
+        self.body1_temp_label.setText(f"{t1_new:.2f} °C")
+        self.body2_temp_label.setText(f"{t2_new:.2f} °C")
+
+        # Update slider positions without triggering manual slider handlers
+        self.body1_slider.blockSignals(True)
+        self.body1_slider.setValue(int(round(t1_new)))
+        self.body1_slider.blockSignals(False)
+
+        self.body2_slider.blockSignals(True)
+        self.body2_slider.setValue(int(round(t2_new)))
+        self.body2_slider.blockSignals(False)
+
+        # Update both body colors according to their current temperatures
+        self.update_body_color(self.body1_frame, t1_new)
+        self.update_body_color(self.body2_frame, t2_new)
+
     # Open the Graph window and pass a reference to this main window
     def open_graph_window(self):
         if self.graph_window is None:

@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QMessageBox,
     QPushButton,
     QVBoxLayout,
     QWidget,
@@ -41,10 +42,7 @@ class GraphWindow(QWidget):
         self.canvas = FigureCanvas(self.figure)
 
         self.ax = self.figure.add_subplot(111)
-        self.ax.set_xlabel("Time (s)")
-        self.ax.set_ylabel("Temperature (°C)")
-        self.ax.set_title("Temperature Over Time")
-        self.ax.grid(True, linestyle="--", alpha=0.5)
+        self.style_axes()
         self.figure.tight_layout()
 
         graph_card_layout.addWidget(self.canvas)
@@ -65,6 +63,8 @@ class GraphWindow(QWidget):
         self.body_combo.setMinimumWidth(160)
 
         self.draw_button = QPushButton("Draw")
+        self.draw_button.clicked.connect(self.draw_graph)
+
         self.clear_button = QPushButton("Clear")
         self.export_csv_button = QPushButton("Export to CSV")
 
@@ -80,6 +80,60 @@ class GraphWindow(QWidget):
 
         # Apply shared application stylesheet
         self.load_stylesheet()
+
+    # Apply standard axis labels, title, and subtle grid styling
+    def style_axes(self):
+        self.ax.set_xlabel("Time (s)")
+        self.ax.set_ylabel("Temperature (°C)")
+        self.ax.set_title("Temperature Over Time")
+        self.ax.grid(True, linestyle="--", alpha=0.5)
+
+    # Check whether the main window currently has recorded simulation data
+    def has_simulation_data(self):
+        return (
+            self.main_window is not None
+            and len(self.main_window.time_history) > 0
+            and len(self.main_window.body1_temp_history) > 0
+            and len(self.main_window.body2_temp_history) > 0
+        )
+
+    # Plot the selected body's temperature history onto the existing graph
+    def draw_graph(self):
+        if not self.has_simulation_data():
+            QMessageBox.information(
+                self,
+                "No Simulation Data",
+                "No simulation data is available yet. Please start a simulation first.",
+            )
+            return
+
+        selected_body = self.body_combo.currentText()
+        times = self.main_window.time_history
+
+        if selected_body == "Body 1":
+            temperatures = self.main_window.body1_temp_history
+            line_color = "red"
+        else:
+            temperatures = self.main_window.body2_temp_history
+            line_color = "blue"
+
+        # Add the new curve without removing previously drawn curves
+        self.ax.plot(times, temperatures, color=line_color, linewidth=2, label=selected_body)
+
+        # Keep readable labels, legend, subtle grid, and clean axis limits
+        self.style_axes()
+        self.ax.legend(loc="best")
+
+        self.ax.relim()
+        self.ax.autoscale_view()
+        if max(times) > 0:
+            self.ax.set_xlim(left=0)
+        else:
+            self.ax.set_xlim(0, 1)
+        self.ax.set_ylim(-5, 205)
+
+        self.figure.tight_layout()
+        self.canvas.draw()
 
     # Load the shared QSS stylesheet if present
     def load_stylesheet(self):

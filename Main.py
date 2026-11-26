@@ -1,3 +1,4 @@
+import os
 import sys
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -237,6 +238,16 @@ class HeatTransfer(QWidget):
         button_layout.addWidget(self.about_button)
         button_layout.addStretch()
         main_layout.addLayout(button_layout)
+
+        # Apply shared application stylesheet
+        self.load_stylesheet()
+
+    # Load the shared QSS stylesheet if present
+    def load_stylesheet(self):
+        style_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "style.qss")
+        if os.path.exists(style_path):
+            with open(style_path, "r", encoding="utf-8") as style_file:
+                self.setStyleSheet(style_file.read())
 
     # Update Body 1 temperature readout when slider 1 moves
     def update_body1_temperature(self, value):

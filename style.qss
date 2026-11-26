@@ -1,0 +1,149 @@
+/* Shared stylesheet for Heat Transfer Simulation windows */
+
+QWidget {
+    background-color: #f4f6f9;
+    color: #1e293b;
+    font-family: "Helvetica Neue", "Segoe UI", Arial;
+    font-size: 13px;
+}
+
+QLabel {
+    background-color: transparent;
+}
+
+QLabel#sectionTitle {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+QLabel#fieldLabel {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+}
+
+QLabel#tempDisplay {
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+QFrame#inputCard {
+    background-color: #ffffff;
+    border: 1px solid #d8e0ea;
+    border-radius: 8px;
+}
+
+QDoubleSpinBox, QComboBox {
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 5px 8px;
+    color: #0f172a;
+    min-height: 24px;
+}
+
+QDoubleSpinBox:focus, QComboBox:focus {
+    border: 1px solid #2563eb;
+}
+
+QSlider {
+    padding: 10px 0px;
+}
+
+QSlider::groove:vertical {
+    background: #cbd5e1;
+    width: 8px;
+    border-radius: 4px;
+}
+
+QSlider::handle:vertical {
+    background: #2563eb;
+    border: 2px solid #ffffff;
+    height: 16px;
+    width: 16px;
+    margin: 0px -6px;
+    border-radius: 10px;
+}
+
+QSlider::handle:vertical:hover {
+    background: #1d4ed8;
+}
+
+QPushButton {
+    background-color: #ffffff;
+    color: #1e293b;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 8px 18px;
+    font-weight: 600;
+    min-height: 22px;
+}
+
+QPushButton:hover {
+    background-color: #e2e8f0;
+    border-color: #94a3b8;
+}
+
+QPushButton:pressed {
+    background-color: #cbd5e1;
+}
+
+QPushButton#startButton {
+    background-color: #2563eb;
+    color: #ffffff;
+    border: 1px solid #1d4ed8;
+}
+
+QPushButton#startButton:hover {
+    background-color: #1d4ed8;
+}
+
+QPushButton#startButton:checked {
+    background-color: #dc2626;
+    color: #ffffff;
+    border: 1px solid #b91c1c;
+}
+
+QPushButton#startButton:checked:hover {
+    background-color: #b91c1c;
+}
+
+/* About window styles */
+QLabel#aboutTitle {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+QLabel#aboutSubtitle {
+    font-size: 13px;
+    color: #64748b;
+}
+
+QLabel#aboutImage {
+    background-color: #ffffff;
+    border: 1px solid #d8e0ea;
+    border-radius: 10px;
+    padding: 8px;
+}
+
+QLabel#aboutDescription {
+    font-size: 13px;
+    color: #334155;
+    padding: 4px 8px;
+}
+
+QFrame#dividerLine {
+    color: #e2e8f0;
+}
+
+QLabel#aboutLink {
+    font-size: 13px;
+    font-weight: 500;
+}

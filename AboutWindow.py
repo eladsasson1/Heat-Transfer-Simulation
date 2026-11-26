@@ -96,6 +96,16 @@ class AboutWindow(QWidget):
         self.close_button.clicked.connect(self.close)
         main_layout.addWidget(self.close_button, alignment=Qt.AlignCenter)
 
+        # Apply shared application stylesheet
+        self.load_stylesheet()
+
+    # Load the shared QSS stylesheet if present
+    def load_stylesheet(self):
+        style_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "style.qss")
+        if os.path.exists(style_path):
+            with open(style_path, "r", encoding="utf-8") as style_file:
+                self.setStyleSheet(style_file.read())
+
 
 # Run the About window directly for standalone testing
 if __name__ == "__main__":

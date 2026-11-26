@@ -329,7 +329,50 @@ class HeatTransfer(QWidget):
 
     # Periodic simulation step triggered by the QTimer
     def timer_method(self):
-        pass
+        if self.body1 is None or self.body2 is None:
+            return
+
+        # Choose smaller internal steps when needed to avoid overshooting equilibrium
+        heat_capacity_1 = self.body1.mass * self.body1.specific_heat
+        heat_capacity_2 = self.body2.mass * self.body2.specific_heat
+        rate = self.conductivity * (1.0 / heat_capacity_1 + 1.0 / heat_capacity_2)
+
+        substeps = 1
+        if rate * self.dt > 0.5:
+            substeps = int(rate * self.dt / 0.5) + 1
+
+        if substeps > 1000:
+            # Extremely rapid conduction reaches thermal equilibrium within a single step
+            t1 = self.body1.temperature
+            t2 = self.body2.temperature
+            equilibrium_temp = (
+                heat_capacity_1 * t1 + heat_capacity_2 * t2
+            ) / (heat_capacity_1 + heat_capacity_2)
+            q1 = heat_capacity_1 * (equilibrium_temp - t1)
+            q2 = -q1
+            t1_new = self.body1.add_heat(q1)
+            t2_new = self.body2.add_heat(q2)
+        else:
+            step_dt = self.dt / substeps
+            t1_new = self.body1.temperature
+            t2_new = self.body2.temperature
+
+            for _ in range(substeps):
+                # Read both temperatures before updating either body
+                t1 = self.body1.temperature
+                t2 = self.body2.temperature
+
+                # Calculate heat exchanged during this time step
+                q1 = self.conductivity * (t2 - t1) * step_dt
+                q2 = -q1
+
+                # Update both bodies using Body.add_heat
+                t1_new = self.body1.add_heat(q1)
+                t2_new = self.body2.add_heat(q2)
+
+        # Store exact floating-point temperatures for the next step
+        self.body1_temperature = t1_new
+        self.body2_temperature = t2_new
 
     # Open the Graph window and pass a reference to this main window
     def open_graph_window(self):

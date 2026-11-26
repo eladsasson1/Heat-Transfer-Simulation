@@ -1,6 +1,6 @@
 import os
 import sys
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
     QApplication,
     QDoubleSpinBox,
@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 from AboutWindow import AboutWindow
+from Body import Body
 from GraphWindow import GraphWindow
 
 
@@ -27,9 +28,19 @@ class HeatTransfer(QWidget):
         self.graph_window = None
         self.about_window = None
 
-        # Current body temperatures stored as floating-point values
+        # Simulation state variables
+        self.body1 = None
+        self.body2 = None
+        self.conductivity = 1.0
         self.body1_temperature = 200.0
         self.body2_temperature = 0.0
+
+        # Simulation timer (100 ms interval corresponds to 0.1 s physical time step)
+        self.timer_interval_ms = 100
+        self.dt = 0.1
+        self.timer = QTimer(self)
+        self.timer.setInterval(self.timer_interval_ms)
+        self.timer.timeout.connect(self.timer_method)
 
         self.setupUI()
 
@@ -229,7 +240,7 @@ class HeatTransfer(QWidget):
         self.start_button.setObjectName("startButton")
         self.start_button.setCheckable(True)
         self.start_button.setMinimumWidth(120)
-        self.start_button.toggled.connect(self.on_start_toggled)
+        self.start_button.toggled.connect(self.start_stop_button_method)
 
         self.graphs_button = QPushButton("Graphs")
         self.graphs_button.setMinimumWidth(120)
@@ -282,12 +293,43 @@ class HeatTransfer(QWidget):
         self.body2_temp_label.setText(f"{temperature:.2f} °C")
         self.update_body_color(self.body2_frame, temperature)
 
-    # Update the Start toggle button text when checked or unchecked
-    def on_start_toggled(self, checked):
-        if checked:
+    # Enable or disable all simulation input controls
+    def set_inputs_enabled(self, enabled):
+        self.body1_slider.setEnabled(enabled)
+        self.body2_slider.setEnabled(enabled)
+        self.body1_mass_spin.setEnabled(enabled)
+        self.body2_mass_spin.setEnabled(enabled)
+        self.body1_specific_heat_spin.setEnabled(enabled)
+        self.body2_specific_heat_spin.setEnabled(enabled)
+        self.conductivity_spin.setEnabled(enabled)
+
+    # Start or stop the heat transfer simulation when the toggle button changes state
+    def start_stop_button_method(self):
+        if self.start_button.isChecked():
+            # Read physical parameters from the interface
+            mass1 = self.body1_mass_spin.value()
+            specific_heat1 = self.body1_specific_heat_spin.value()
+            mass2 = self.body2_mass_spin.value()
+            specific_heat2 = self.body2_specific_heat_spin.value()
+            self.conductivity = self.conductivity_spin.value()
+
+            # Create two Body objects with the current interface values
+            self.body1 = Body(mass1, specific_heat1, self.body1_temperature)
+            self.body2 = Body(mass2, specific_heat2, self.body2_temperature)
+
+            # Update button text, lock input controls, and start the simulation timer
             self.start_button.setText("Stop")
+            self.set_inputs_enabled(False)
+            self.timer.start(self.timer_interval_ms)
         else:
+            # Stop the timer, restore button text, and re-enable controls
+            self.timer.stop()
             self.start_button.setText("Start")
+            self.set_inputs_enabled(True)
+
+    # Periodic simulation step triggered by the QTimer
+    def timer_method(self):
+        pass
 
     # Open the Graph window and pass a reference to this main window
     def open_graph_window(self):

@@ -13,12 +13,16 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from AboutWindow import AboutWindow
+from GraphWindow import GraphWindow
 
 
 # Main application window for the Heat Transfer user interface
 class HeatTransfer(QWidget):
     def __init__(self):
         super().__init__()
+        self.graph_window = None
+        self.about_window = None
         self.setupUI()
 
     # Build the complete main window UI with bodies, sliders, inputs, and buttons
@@ -221,9 +225,11 @@ class HeatTransfer(QWidget):
 
         self.graphs_button = QPushButton("Graphs")
         self.graphs_button.setMinimumWidth(120)
+        self.graphs_button.clicked.connect(self.open_graph_window)
 
         self.about_button = QPushButton("About")
         self.about_button.setMinimumWidth(120)
+        self.about_button.clicked.connect(self.open_about_window)
 
         button_layout.addStretch()
         button_layout.addWidget(self.start_button)
@@ -246,6 +252,22 @@ class HeatTransfer(QWidget):
             self.start_button.setText("Stop")
         else:
             self.start_button.setText("Start")
+
+    # Open the Graph window and pass a reference to this main window
+    def open_graph_window(self):
+        if self.graph_window is None:
+            self.graph_window = GraphWindow(self)
+        self.graph_window.show()
+        self.graph_window.raise_()
+        self.graph_window.activateWindow()
+
+    # Open the About window
+    def open_about_window(self):
+        if self.about_window is None:
+            self.about_window = AboutWindow()
+        self.about_window.show()
+        self.about_window.raise_()
+        self.about_window.activateWindow()
 
 
 # Run the application directly

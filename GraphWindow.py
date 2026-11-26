@@ -1,10 +1,13 @@
+import csv
 import os
+import subprocess
 import sys
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
+    QFileDialog,
     QFrame,
     QHBoxLayout,
     QLabel,
@@ -67,7 +70,9 @@ class GraphWindow(QWidget):
 
         self.clear_button = QPushButton("Clear")
         self.clear_button.clicked.connect(self.clear_graph)
+
         self.export_csv_button = QPushButton("Export to CSV")
+        self.export_csv_button.clicked.connect(self.export_to_csv)
 
         controls_layout.addWidget(selector_label)
         controls_layout.addWidget(self.body_combo)
@@ -142,6 +147,94 @@ class GraphWindow(QWidget):
         self.style_axes()
         self.figure.tight_layout()
         self.canvas.draw()
+
+    # Export all recorded simulation data (both bodies) to an Excel-compatible CSV file
+    def export_to_csv(self):
+        if not self.has_simulation_data():
+            QMessageBox.information(
+                self,
+                "No Simulation Data",
+                "No simulation data is available to export. Please run a simulation first.",
+            )
+            return
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Export Simulation Data",
+            "heat_transfer_data.csv",
+            "CSV Files (*.csv);;All Files (*)",
+        )
+
+        # Stop cleanly if the user cancels the save dialog
+        if not file_path:
+            return
+
+        if not file_path.lower().endswith(".csv"):
+            file_path = f"{file_path}.csv"
+
+        times = self.main_window.time_history
+        body1_temps = self.main_window.body1_temp_history
+        body2_temps = self.main_window.body2_temp_history
+
+        try:
+            # Use UTF-8 with BOM so Microsoft Excel displays degree symbols properly
+            with open(file_path, "w", newline="", encoding="utf-8-sig") as csv_file:
+                writer = csv.writer(csv_file)
+                writer.writerow(["Time (s)", "Temperature 1 (°C)", "Temperature 2 (°C)"])
+                for time_value, temp1, temp2 in zip(times, body1_temps, body2_temps):
+                    writer.writerow([time_value, temp1, temp2])
+        except OSError as error:
+            QMessageBox.critical(
+                self,
+                "Export Error",
+                f"Failed to save the CSV file:\n{error}",
+            )
+            return
+
+        self.open_exported_file(file_path)
+
+    # Open the exported CSV automatically in Microsoft Excel on macOS, or fall back to default app
+    def open_exported_file(self, file_path):
+        if sys.platform == "darwin":
+            excel_result = subprocess.run(
+                ["open", "-a", "Microsoft Excel", file_path],
+                capture_output=True,
+                text=True,
+            )
+            if excel_result.returncode == 0:
+                return
+
+            # Fall back to the default macOS application when Excel is unavailable
+            fallback_result = subprocess.run(
+                ["open", file_path],
+                capture_output=True,
+                text=True,
+            )
+            if fallback_result.returncode == 0:
+                QMessageBox.information(
+                    self,
+                    "CSV Exported",
+                    f"Simulation data was saved to:\n{file_path}\n\n"
+                    "Microsoft Excel was not found, so the file was opened with the default application.",
+                )
+            else:
+                QMessageBox.information(
+                    self,
+                    "CSV Exported",
+                    f"Simulation data was saved to:\n{file_path}\n\n"
+                    "Microsoft Excel was not found and the file could not be opened automatically.",
+                )
+        elif sys.platform == "win32":
+            try:
+                os.startfile(file_path)
+            except OSError:
+                QMessageBox.information(
+                    self,
+                    "CSV Exported",
+                    f"Simulation data was saved to:\n{file_path}",
+                )
+        else:
+            subprocess.run(["xdg-open", file_path], capture_output=True, text=True)
 
     # Load the shared QSS stylesheet if present
     def load_stylesheet(self):

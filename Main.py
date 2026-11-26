@@ -108,7 +108,7 @@ class HeatTransfer(QWidget):
         conductivity_label.setAlignment(Qt.AlignCenter)
 
         self.conductivity_spin = QDoubleSpinBox()
-        self.conductivity_spin.setRange(0.0, 10000.0)
+        self.conductivity_spin.setRange(0.01, 10000.0)
         self.conductivity_spin.setDecimals(2)
         self.conductivity_spin.setSingleStep(0.10)
         self.conductivity_spin.setValue(1.00)
@@ -318,6 +318,8 @@ class HeatTransfer(QWidget):
             mass2 = self.body2_mass_spin.value()
             specific_heat2 = self.body2_specific_heat_spin.value()
             self.conductivity = self.conductivity_spin.value()
+            if self.conductivity <= 0:
+                raise ValueError("Conductivity must be greater than zero.")
 
             # Create two Body objects with the current interface values
             self.body1 = Body(mass1, specific_heat1, self.body1_temperature)

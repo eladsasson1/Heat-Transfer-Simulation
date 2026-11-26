@@ -22,8 +22,15 @@ from GraphWindow import GraphWindow
 class HeatTransfer(QWidget):
     def __init__(self):
         super().__init__()
+
+        # Secondary window references
         self.graph_window = None
         self.about_window = None
+
+        # Current body temperatures stored as floating-point values
+        self.body1_temperature = 200.0
+        self.body2_temperature = 0.0
+
         self.setupUI()
 
     # Build the complete main window UI with bodies, sliders, inputs, and buttons
@@ -41,10 +48,10 @@ class HeatTransfer(QWidget):
         diagram_grid.setVerticalSpacing(10)
 
         # --- Body 1 temperature display and vertical slider ---
-        self.body1_temp_label = QLabel("200 °C")
+        self.body1_temp_label = QLabel("200.00 °C")
         self.body1_temp_label.setObjectName("tempDisplay")
         self.body1_temp_label.setAlignment(Qt.AlignCenter)
-        self.body1_temp_label.setFixedWidth(84)
+        self.body1_temp_label.setFixedWidth(96)
 
         self.body1_slider = QSlider(Qt.Vertical)
         self.body1_slider.setRange(0, 200)
@@ -52,7 +59,7 @@ class HeatTransfer(QWidget):
         self.body1_slider.setTickPosition(QSlider.TicksRight)
         self.body1_slider.setTickInterval(50)
         self.body1_slider.setFixedHeight(210)
-        self.body1_slider.valueChanged.connect(self.update_body1_temperature)
+        self.body1_slider.valueChanged.connect(self.left_temperature_changed)
 
         slider1_container = QWidget()
         slider1_layout = QVBoxLayout(slider1_container)
@@ -84,7 +91,7 @@ class HeatTransfer(QWidget):
         conductivity_label.setAlignment(Qt.AlignCenter)
 
         self.conductivity_spin = QDoubleSpinBox()
-        self.conductivity_spin.setRange(0.01, 10000.0)
+        self.conductivity_spin.setRange(0.0, 10000.0)
         self.conductivity_spin.setDecimals(2)
         self.conductivity_spin.setSingleStep(0.10)
         self.conductivity_spin.setValue(1.00)
@@ -115,10 +122,10 @@ class HeatTransfer(QWidget):
         )
 
         # --- Body 2 temperature display and vertical slider ---
-        self.body2_temp_label = QLabel("0 °C")
+        self.body2_temp_label = QLabel("0.00 °C")
         self.body2_temp_label.setObjectName("tempDisplay")
         self.body2_temp_label.setAlignment(Qt.AlignCenter)
-        self.body2_temp_label.setFixedWidth(84)
+        self.body2_temp_label.setFixedWidth(96)
 
         self.body2_slider = QSlider(Qt.Vertical)
         self.body2_slider.setRange(0, 200)
@@ -126,7 +133,7 @@ class HeatTransfer(QWidget):
         self.body2_slider.setTickPosition(QSlider.TicksLeft)
         self.body2_slider.setTickInterval(50)
         self.body2_slider.setFixedHeight(210)
-        self.body2_slider.valueChanged.connect(self.update_body2_temperature)
+        self.body2_slider.valueChanged.connect(self.right_temperature_changed)
 
         slider2_container = QWidget()
         slider2_layout = QVBoxLayout(slider2_container)
@@ -242,6 +249,10 @@ class HeatTransfer(QWidget):
         # Apply shared application stylesheet
         self.load_stylesheet()
 
+        # Set initial temperature displays and RGB colors from initial slider values
+        self.left_temperature_changed()
+        self.right_temperature_changed()
+
     # Load the shared QSS stylesheet if present
     def load_stylesheet(self):
         style_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "style.qss")
@@ -249,13 +260,27 @@ class HeatTransfer(QWidget):
             with open(style_path, "r", encoding="utf-8") as style_file:
                 self.setStyleSheet(style_file.read())
 
-    # Update Body 1 temperature readout when slider 1 moves
-    def update_body1_temperature(self, value):
-        self.body1_temp_label.setText(f"{value} °C")
+    # Update a body's RGB color from black (0 C) to bright red (200 C)
+    def update_body_color(self, body_frame, temperature):
+        red = int(255 * temperature / 200)
+        red = max(0, min(255, red))
+        body_frame.setStyleSheet(
+            f"background-color: rgb({red}, 0, 0); border: 2px solid #2b2d42; border-radius: 4px;"
+        )
 
-    # Update Body 2 temperature readout when slider 2 moves
-    def update_body2_temperature(self, value):
-        self.body2_temp_label.setText(f"{value} °C")
+    # Update left body temperature display and color when slider 1 moves
+    def left_temperature_changed(self):
+        temperature = float(self.body1_slider.value())
+        self.body1_temperature = temperature
+        self.body1_temp_label.setText(f"{temperature:.2f} °C")
+        self.update_body_color(self.body1_frame, temperature)
+
+    # Update right body temperature display and color when slider 2 moves
+    def right_temperature_changed(self):
+        temperature = float(self.body2_slider.value())
+        self.body2_temperature = temperature
+        self.body2_temp_label.setText(f"{temperature:.2f} °C")
+        self.update_body_color(self.body2_frame, temperature)
 
     # Update the Start toggle button text when checked or unchecked
     def on_start_toggled(self, checked):
